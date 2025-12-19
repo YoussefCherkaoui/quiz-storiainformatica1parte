@@ -8,7 +8,7 @@
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
     .quiz-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 800px; width: 100%; }
     h1 { text-align: center; color: #333; }
-    .question { font-size: 1.1rem; margin-bottom: 1.5rem; color: #2c3e50; line-height: 1.6; }
+    .question { font-size: 1.1rem; margin-bottom: 1.5rem; color: #2c3e50; line-height: 2; } /* Line-height aumentato per far spazio ai menu */
     
     /* Stile Scelta Multipla */
     .options { display: flex; flex-direction: column; gap: 10px; }
@@ -17,18 +17,29 @@
     .btn.correct { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
     .btn.wrong { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
     
-    /* Stile Trascinamento */
-    .draggable-container { margin-top: 20px; padding: 15px; background: #eee; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; min-height: 50px;}
-    .draggable { background: #fff; border: 2px solid #007bff; color: #007bff; padding: 8px 15px; border-radius: 20px; cursor: grab; font-weight: bold; user-select: none; }
-    .draggable.dragging { opacity: 0.5; }
-    .drop-zone { display: inline-block; width: 120px; height: 30px; border-bottom: 2px dashed #333; margin: 0 5px; vertical-align: middle; text-align: center; background: #fafafa; font-weight: bold; color: #333; }
-    .drop-zone.filled { border-bottom: 2px solid #28a745; background: #e9ecef; }
-    .drop-zone.error { border-bottom: 2px solid #dc3545; color: #dc3545; }
+    /* NUOVO Stile Menu a Tendina (Dropdown) */
+    select.cloze-select {
+        padding: 5px 10px;
+        margin: 0 5px;
+        border: 2px solid #007bff;
+        border-radius: 5px;
+        background-color: #fff;
+        color: #333;
+        font-size: 1rem;
+        cursor: pointer;
+        font-family: inherit;
+        max-width: 200px; /* Evita che diventino troppo larghi */
+    }
+    select.cloze-select:focus { outline: none; box-shadow: 0 0 5px rgba(0,123,255,0.5); }
+    
+    /* Stili per Corretto/Sbagliato nei menu */
+    select.cloze-select.correct { border-color: #28a745; background-color: #d4edda; color: #155724; }
+    select.cloze-select.wrong { border-color: #dc3545; background-color: #f8d7da; color: #721c24; }
 
     /* Controlli */
     #next-btn, #check-btn { margin-top: 20px; padding: 12px 20px; color: white; border: none; border-radius: 5px; cursor: pointer; display: none; width: 100%; font-size: 1.1rem; }
     #next-btn { background-color: #007bff; }
-    #check-btn { background-color: #28a745; display: none; } /* Verde per confermare trascinamento */
+    #check-btn { background-color: #28a745; display: none; } 
 
     #score-container { text-align: center; display: none; }
 </style>
@@ -556,6 +567,8 @@
 
     // --- LOGICA DEL QUIZ ---
 
+   // --- LOGICA DEL QUIZ (versione Dropdown) ---
+
     let currentQuestions = [];
     let currentQuestionIndex = 0;
     let score = 0;
@@ -564,11 +577,13 @@
     const questionText = document.getElementById("question-text");
     const optionsContainer = document.getElementById("options-container");
     const nextButton = document.getElementById("next-btn");
-    const checkButton = document.createElement("button"); // Bottone per confermare drag & drop
+    
+    // Creiamo il bottone conferma
+    const checkButton = document.createElement("button"); 
     checkButton.id = "check-btn";
-    checkButton.innerText = "Conferma Risposta";
-    checkButton.onclick = checkDragAnswer;
-    document.getElementById("quiz").appendChild(checkButton); // Aggiungilo al DOM
+    checkButton.innerText = "Conferma Risposte";
+    checkButton.onclick = checkDropdownAnswer; // Nuova funzione di controllo
+    document.getElementById("quiz").appendChild(checkButton); 
 
     const progressText = document.getElementById("progress-text");
     const scoreContainer = document.getElementById("score-container");
@@ -586,7 +601,7 @@
         currentQuestionIndex = 0;
         let allQuestions = [...questions];
         shuffleArray(allQuestions);
-        currentQuestions = allQuestions.slice(0, 16); // Prendi 16 domande a caso
+        currentQuestions = allQuestions.slice(0, 16); 
         
         quizContainer.style.display = "block";
         scoreContainer.style.display = "none";
@@ -596,12 +611,10 @@
     function showQuestion() {
         resetState();
         let q = currentQuestions[currentQuestionIndex];
-        
         progressText.innerText = `Domanda ${currentQuestionIndex + 1} di ${currentQuestions.length}`;
 
-        // Controlla il tipo di domanda
         if (q.type === "drag") {
-            renderDragDrop(q);
+            renderDropdown(q); // Usiamo la nuova funzione dropdown
         } else {
             renderMultipleChoice(q);
         }
@@ -612,16 +625,11 @@
         checkButton.style.display = "none";
         questionText.innerHTML = "";
         optionsContainer.innerHTML = "";
-        // Rimuovi eventuali container extra del drag & drop se esistono
-        const existingDrag = document.querySelector(".draggable-container");
-        if(existingDrag) existingDrag.remove();
     }
 
-    // --- LOGICA SCELTA MULTIPLA ---
+    // --- LOGICA SCELTA MULTIPLA (Invariata) ---
     function renderMultipleChoice(q) {
         questionText.innerText = q.text;
-        
-        // Se non c'è la proprietà 'type' o è 'choice'
         for (const [key, value] of Object.entries(q.options)) {
             const button = document.createElement("button");
             button.innerText = `${key}) ${value}`;
@@ -645,152 +653,70 @@
         });
 
         if (selectedKey === correctKey) {
-            score += 2; // +2 Punti corretta
+            score += 2; 
         } else {
             selectedBtn.classList.add("wrong");
-            score -= 1; // -1 Punto errata (come da regolamento esame)
+            score -= 1; 
         }
         nextButton.style.display = "block";
     }
 
-    // --- LOGICA TRASCINAMENTO (DRAG & DROP) ---
-    function renderDragDrop(q) {
-        // 1. Prepara il testo con i buchi
-        // Il testo nel JSON deve avere [[]] dove vanno i buchi
+    // --- NUOVA LOGICA MENU A TENDINA (DROPDOWN) ---
+    function renderDropdown(q) {
+        // 1. Mischiamo tutte le risposte possibili per creare le opzioni del menu
+        let allOptions = [...q.answers];
+        shuffleArray(allOptions);
+
+        // 2. Spezziamo il testo e inseriamo i menu <select>
         let parts = q.text.split("[[]]");
         let htmlText = "";
         
         parts.forEach((part, index) => {
             htmlText += part;
             if (index < parts.length - 1) {
-                htmlText += `<div class="drop-zone" data-index="${index}" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="removeWord(this)"></div>`;
+                // Creiamo il menu a tendina
+                let selectHTML = `<select class="cloze-select">`;
+                selectHTML += `<option value="" disabled selected>Seleziona...</option>`; // Opzione vuota iniziale
+                
+                // Aggiungiamo tutte le parole mischiate come opzioni
+                allOptions.forEach(opt => {
+                    selectHTML += `<option value="${opt}">${opt}</option>`;
+                });
+                
+                selectHTML += `</select>`;
+                htmlText += selectHTML;
             }
         });
+        
         questionText.innerHTML = htmlText;
-
-        // 2. Prepara le parole da trascinare
-        const dragContainer = document.createElement("div");
-        dragContainer.classList.add("draggable-container");
-        
-        let words = [...q.answers];
-        shuffleArray(words); // Mischia le risposte
-
-        words.forEach(word => {
-            let span = document.createElement("span");
-            span.classList.add("draggable");
-            span.draggable = true;
-            span.innerText = word;
-            span.id = "word-" + Math.random().toString(36).substr(2, 9);
-            span.ondragstart = drag;
-            // Aggiungo anche click per mobile
-            span.onclick = function() { selectWordForMobile(this); };
-            dragContainer.appendChild(span);
-        });
-
-        quizContainer.insertBefore(dragContainer, nextButton); // Inserisci prima del tasto next
-        checkButton.style.display = "block"; // Mostra tasto conferma
+        checkButton.style.display = "block"; // Mostra bottone conferma
     }
 
-    // Funzioni Drag & Drop Standard HTML5
-    let selectedWord = null; // Per mobile o click semplice
-
-    function allowDrop(ev) {
-        ev.preventDefault();
-    }
-
-    function drag(ev) {
-        ev.dataTransfer.setData("text", ev.target.id);
-        selectedWord = ev.target;
-    }
-
-    function drop(ev) {
-        ev.preventDefault();
-        var data = ev.dataTransfer.getData("text");
-        var draggedElement = document.getElementById(data);
-        
-        // Se la zona è vuota, accetta
-        if (ev.target.classList.contains("drop-zone") && ev.target.innerText === "") {
-            ev.target.innerText = draggedElement.innerText;
-            ev.target.classList.add("filled");
-            draggedElement.style.display = "none"; // Nascondi dalla banca parole
-        }
-    }
-
-    // Funzione alternativa per click (utile su mobile)
-    function selectWordForMobile(el) {
-        // Se ho già selezionato una parola, deseleziono
-        if (document.querySelectorAll('.draggable.dragging').length > 0) {
-            document.querySelectorAll('.draggable').forEach(d => d.classList.remove('dragging'));
-        }
-        el.classList.add("dragging");
-        
-        // Ora rendiamo le drop-zone cliccabili per ricevere questa parola
-        document.querySelectorAll('.drop-zone').forEach(zone => {
-            zone.onclick = function() {
-                let activeWord = document.querySelector('.draggable.dragging');
-                if (activeWord && this.innerText === "") {
-                    this.innerText = activeWord.innerText;
-                    this.classList.add("filled");
-                    activeWord.style.display = "none";
-                    activeWord.classList.remove("dragging");
-                } else if (this.innerText !== "") {
-                    // Se clicco su una zona piena, rimuovo la parola e la rimetto giù
-                    removeWord(this);
-                }
-            }
-        });
-    }
-
-    function removeWord(zone) {
-        if (zone.innerText === "") return;
-        
-        // Trova la parola originale nascosta e rimostrala
-        let text = zone.innerText;
-        let hiddenWords = document.querySelectorAll(".draggable");
-        for (let w of hiddenWords) {
-            if (w.style.display === "none" && w.innerText === text) {
-                w.style.display = "inline-block";
-                break; // Trova solo la prima occorrenza
-            }
-        }
-        
-        zone.innerText = "";
-        zone.classList.remove("filled");
-    }
-
-    function checkDragAnswer() {
+    function checkDropdownAnswer() {
         let q = currentQuestions[currentQuestionIndex];
-        let zones = document.querySelectorAll(".drop-zone");
+        let selects = document.querySelectorAll(".cloze-select");
         let allCorrect = true;
 
-        zones.forEach((zone, index) => {
-            let userAnswer = zone.innerText.trim();
-            let correctAnswer = q.answers[index]; // L'array answers è ordinato in base ai buchi
+        selects.forEach((select, index) => {
+            let userAnswer = select.value;
+            let correctAnswer = q.answers[index]; 
             
+            select.disabled = true; // Blocca il menu
+
             if (userAnswer === correctAnswer) {
-                zone.style.borderBottom = "2px solid green";
-                zone.style.color = "green";
+                select.classList.add("correct");
             } else {
-                zone.style.borderBottom = "2px solid red";
-                zone.style.color = "red";
-                // Opzionale: mostra la risposta giusta
-                // zone.innerHTML += ` <small style='color:green'>(${correctAnswer})</small>`;
+                select.classList.add("wrong");
                 allCorrect = false;
             }
         });
 
         if (allCorrect) {
             score += 2;
-        } else {
-            // NESSUN punteggio negativo per il trascinamento (come da tua richiesta)
-            // score resta uguale
-        }
-
+        } 
+        
         checkButton.style.display = "none";
         nextButton.style.display = "block";
-        
-        // Disabilita modifiche
-        document.querySelectorAll(".drop-zone").forEach(z => z.onclick = null);
     }
 
     function nextQuestion() {
@@ -805,20 +731,10 @@
     function showScore() {
         quizContainer.style.display = "none";
         scoreContainer.style.display = "block";
-        
         const maxScore = currentQuestions.length * 2; 
         const passThreshold = 18; 
-
-        let resultMessage = "";
-        let colorStyle = "";
-
-        if (score >= passThreshold) {
-            resultMessage = "✅ COMPLIMENTI! ESAME SUPERATO.";
-            colorStyle = "color: #28a745; font-weight: bold;";
-        } else {
-            resultMessage = "❌ PECCATO! ESAME NON SUPERATO.";
-            colorStyle = "color: #dc3545; font-weight: bold;";
-        }
+        let resultMessage = score >= passThreshold ? "✅ COMPLIMENTI! ESAME SUPERATO." : "❌ PECCATO! ESAME NON SUPERATO.";
+        let colorStyle = score >= passThreshold ? "color: #28a745;" : "color: #dc3545;";
 
         finalScoreText.innerHTML = `
             <h2 style="${colorStyle}">${resultMessage}</h2>
