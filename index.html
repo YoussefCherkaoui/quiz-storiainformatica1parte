@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Storia dell'Informatica</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .quiz-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; width: 100%; }
+        h1 { text-align: center; color: #333; }
+        .question { font-size: 1.2rem; margin-bottom: 1.5rem; color: #2c3e50; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .btn { padding: 15px; border: 2px solid #ddd; background: white; border-radius: 5px; cursor: pointer; text-align: left; transition: all 0.2s; font-size: 1rem; }
+        .btn:hover { background-color: #f0f0f0; border-color: #bbb; }
+        .btn.correct { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .btn.wrong { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        #next-btn { margin-top: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; display: none; width: 100%; font-size: 1.1rem; }
+        #score-container { text-align: center; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="quiz">
+        <h1>Quiz Informatica</h1>
+        <p id="progress-text">Domanda 1 di ...</p>
+        <div class="question" id="question-text">Caricamento...</div>
+        <div class="options" id="options-container"></div>
+        <button id="next-btn" onclick="nextQuestion()">Prossima Domanda</button>
+    </div>
+    <div id="score-container">
+        <h2>Quiz Completato!</h2>
+        <p id="final-score"></p>
+        <button class="btn" onclick="location.reload()" style="text-align:center; background:#007bff; color:white;">Ricomincia</button>
+    </div>
+</div>
+
+<script>
+    // inserite domande del file 
+    const questions = [
+    {
+        text: "La Intel fu fondata alla fine degli anni '60 con l'obiettivo di progettare e produrre:",
+        options: { A: "personal computer", B: "memorie a semiconduttore", C: "Digital Equipment Corporation" },
+        correct: "B"
+    },
+    {
+        text: "La decisione di sviluppare __________ avvenne solo a causa della richiesta proveniente da compagnie esterne.",
+        options: { A: "microprocessori", B: "8008", C: "8088" },
+        correct: "A"
+    },
+    {
+        text: "Le compagnie esterne erano:",
+        options: { A: "Texas instruments e IBM", B: "Busicom e Datacom", C: "Digital Equipment Corporation" },
+        correct: "B"
+    },
+    {
+        text: "Federico Faggin venne assunto per guidare lo sviluppo del:",
+        options: { A: "8008", B: "4004", C: "8088" },
+        correct: "B"
+    },
+    {
+        text: "La multiprogrammazione:",
+        options: { A: "fu la più importante innovazione introdotta dai sistemi operativi OS/360 della IBM", B: "fu concepita alla fine degli anni ’50 per evitare le attese dovute alle periferiche di input/output", C: "poté finalmente essere implementata quando le CPU furono dotate di un timer hardware", D: "permetteva finalmente di usare i nastri magnetici come dispositivi di I/O ad accesso diretto" },
+        correct: "B"
+    },
+    {
+        text: "L’ENIAC:",
+        options: { A: "usava programmi scritti su schede perforate", B: "fu progettato da John von Neumann", C: "era facile da programmare, ma molto lento ad eseguire i programmi.", D: "veniva “programmato” riconfigurando switch e cavi elettrici in base alla funzione da calcolare." },
+        correct: "D"
+    },
+    {
+        text: "Negli anni ’50, l’invenzione del transistor:",
+        options: { A: "Permise di implementare le prime memorie a nucleo magnetico.", B: "Permise di costruire i primi processori sviluppati su un’unica fettina di selenio", C: "Permise di costruire computer più veloci, al costo di un maggior consumo di energia elettrica.", D: "Permise di costruire computer più veloci e affidabili di quelli che usavano valvole termoioniche" },
+        correct: "D"
+    },
+    {
+        text: "Tra gli eventi importanti per la storia dell'informatica nel XIX secolo troviamo:",
+        options: { A: "l'idea dell'Analytical Engine, i calcolatori analogici, il sistema elettrico di tabulazione di Hollerith", B: "l'invenzione delle schede perforate, l'idea dell'Analytical Engine, la macchina calcolatrice nota come Pascalina", C: "l'idea dell'Analytical Engine, la formulazione dell'algebra di Boole, il sistema elettrico di tabulazione di Hollerith", D: "la formulazione dell'algebra di Boole, il sistema elettrico di tabulazione di Hollerith, le valvole termoioniche" },
+        correct: "C"
+    },
+    {
+        text: "Il sistema MULTICS:",
+        options: { A: "Ebbe il merito di ispirare lo sviluppo del concetto di File System gerarchico", B: "Grazie alla sua eleganza e semplicità, ha ispirato lo sviluppo del suo diretto successore, lo Unix.", C: "insieme all’OS/360 furono i sistemi operativi time sharing più diffusi degli anni ‘60", D: "Fu il primo sistema operativo Time Sharing" },
+        correct: "A"
+    },
+    {
+        text: "Il nome di Robert Fano è legato al MULTICS. Questo sistema non fu certo un successo, ma è grazie ad esso che sono nati il concetto moderno di File System, e poco dopo anche il sistema Unix, per merito di Ritchie e Thompson.",
+        options: { A: "Vero (Multics, file system, unix, Ritchie e Thompson)", B: "Falso (OS/360, time sharing...)", C: "Falso (CTSS...)", D: "Falso (OS/360, unix...)" },
+        correct: "A"
+    },
+    {
+        text: "Le interfacce grafiche:",
+        options: { A: "furono una delle tante innovazioni concepite da Gary Kildall", B: "furono introdotte per la prima volta a livello commerciale nel sistema operativo Windows 95", C: "sono state implementate per la prima volta nel computer Alto della Xerox", D: "furono usate nel primo computer della Apple, il Macintosh 128k" },
+        correct: "C"
+    },
+    {
+        text: "Il linguaggio Java:",
+        options: { A: "fu sviluppato inizialmente come risposta ai sistemi chiusi della Apple di Steve Jobs", B: "fu usato inizialmente per scrivere applicazioni scaricate da Internet ed eseguite localmente dal browser", C: "deve la sua proverbiale portabilità grazie all'uso di codice intermedio: il P-code", D: "è ora stato soppiantato da linguaggi di scripting più moderni come Python" },
+        correct: "B"
+    },
+    {
+        text: "Il linguaggio Pascal:",
+        options: { A: "fu uno dei linguaggi di riferimento degli anni '70, come l'algol lo fu negli anni '60", B: "Dopo l’enorme diffusione degli anni ’80 e ’90, è ormai stato soppiantato dal linguaggio Java", C: "Permetteva di scrivere programmi allo stesso tempo estremamente facili da capire, ma lenti da eseguire", D: "Era molto inefficiente a causa di un sistema di tipi rigido e complesso" },
+        correct: "A"
+    },
+    {
+        text: "Charles Babbage:",
+        options: { A: "lavorò con Federico Menabrea alla stesura del progetto dell'Analytical Engine", B: "ideò nel XIX secolo l'Analytical Engine, che per molti aspetti aveva caratteristiche simili a quelle dei computer moderni.", C: "progettò e costruì quello che si può considerare il primo computer in senso moderno", D: "assoldò Ada Byron, contessa di Lovelace, per scrivere programmi per il suo Analytical Engine" },
+        correct: "B"
+    },
+    {
+        text: "Il sistema Operativo OS/360:",
+        options: { A: "era un sistema operativo multitasking molto diffuso negli anni '60", B: "fu usato come base per lo sviluppo dello Unix", C: "rivaleggiò con il sistema Multics come sistema più diffuso degli anni '60", D: "fu soppiantato dallo Unix all'inizio degli anni '70" },
+        correct: "A"
+    },
+    {
+        text: "Il primo linguaggio fondamentale nella storia dell'Informatica è sicuramente il Fortran. Negli anni '60 rimase il linguaggio più usato, anche se per la descrizione formale degli algoritmi ne veniva preferito un altro: l'Algol. Inoltre, per lo sviluppo di applicazioni commerciali gli veniva preferito il Cobol.",
+        options: { A: "Vero (Fortran, non strutturato, Algol, Cobol)", B: "Falso (C, strutturato, Algol, Cobol)", C: "Falso (Fortran, strutturato, Lisp, Basic)", D: "Falso (Basic, non strutturato, Fortran, C)" },
+        correct: "A"
+    },
+    {
+        text: "Tra i linguaggi di programmazione studiati, due di questi sono stati ampiamente criticati. Essi sono:",
+        options: { A: "Il Simula 67 e lo Smalltalk", B: "Il COBOL (perché adatto solo per le applicazioni commerciali) e Il BASIC (perché favoriva la scrittura di programmi non strutturati)", C: "Il LISP e il Prolog", D: "L'Algol e Il Fortran" },
+        correct: "B"
+    },
+    {
+        text: "Negli anni '60:",
+        options: { A: "il FORTRAN viene rimpiazzato dall'ALGOL per la descrizione degli algoritmi, e dal BASIC per la loro implementazione", B: "Vengono gettate le basi della programmazione object oriented con lo sviluppo del Simula67 e di Java", C: "Vengono sviluppati due linguaggi molto diversi fra loro: l'ALGOL e il BASIC", D: "nel contesto dello sviluppo del Multics prima e dello Unix dopo viene messo a punto il linguaggio C" },
+        correct: "C"
+    },
+    {
+        text: "Il linguaggio ADA:",
+        options: { A: "era elegante ed efficiente, tanto che soppiantò velocemente il C e il Pascal", B: "permetteva una prototipizzazione rapida, grazie all’uso di codice intermedio, noto come A-code", C: "a causa della sua complessità e delle sue troppe caratteristiche, non si diffuse né divenne mai molto popolare", D: "Alan Kay lo chiamò così in onore di Ada Lovelace" },
+        correct: "C"
+    },
+    {
+        text: "I sistemi operativi per personal computer:",
+        options: { A: "Erano inizialmente molto lenti perché risiedevano su hard disk altrettanto lenti e poco capienti.", B: "Grazie al BIOS, inventato da Gary Kildall, erano facilmente portabili su piattaforme hardware diverse", C: "Hanno usato le prime interfacce grafiche grazie al Macintosh 128k della Apple", D: "Si diffusero enormemente negli anni ’80 grazie soprattutto al sistema Linux" },
+        correct: "B"
+    },
+    {
+        text: "L’ALGOL:",
+        options: { A: "Grazie alla sua eleganza ispirò lo sviluppo del BASIC", B: "Sostituì il FORTRAN negli anni '60", C: "Fu, insieme al BASIC, il linguaggio più diffuso e usato degli anni '60", D: "Fu il primo linguaggio a definire in modo preciso i concetti di call by value, by name, e by reference" },
+        correct: "D"
+    },
+    {
+        text: "Il linguaggio C:",
+        options: { A: "Ha tra le sue qualità la portabilità e l’efficienza", B: "Dopo l’enorme diffusione degli anni ’80, è ormai stato soppiantato dal linguaggio Java", C: "Permette di scrivere programmi allo stesso tempo estremamente sintetici e facilmente comprensibili", D: "Fu progettato inizialmente per essere usato nello sviluppo del sistema operativo MULTICS" },
+        correct: "A"
+    },
+    {
+        text: "Negli anni '50:",
+        options: { A: "Corrado Böhm e Giuseppe Jacopini arrivarono alla formulazione di un famoso teorema sulla programmazione strutturata", B: "fu molto forte il dibattito sulle problematiche legate al GOTO", C: "furono sviluppati quasi in parallelo il FORTRAN, il LISP, e il BASIC", D: "le ricerche nel campo dei compilatori portarono allo sviluppo dei primi linguaggi ad alto livello" },
+        correct: "D"
+    },
+    {
+        text: "Negli anni '60 il linguaggio di riferimento per la descrizione degli algoritmi era l'Algol. Tuttavia, per lo sviluppo delle applicazioni scientifiche gli veniva preferito il Fortran, e per quelle commerciali il Cobol.",
+        options: { A: "Falso (Fortran, C, Lisp)", B: "Vero (Algol, Fortran, Cobol)", C: "Falso (Basic, Fortran, Pascal)", D: "Falso (Lisp, C, Cobol)" },
+        correct: "B"
+    },
+    {
+        text: "Molti processori moderni:",
+        options: { A: "data la velocità con cui riescono ad accedere alla RAM, non hanno bisogno di usare memorie cache.", B: "possono eseguire un’istruzione prima di sapere se questa vada effettivamente eseguita.", C: "sono detti multi-core perché implementano il multiple issue", D: "usano istruzioni macchina complesse e a lunghezza variabile (CISC)" },
+        correct: "B"
+    },
+    {
+        text: "Con l’acronimo CISC si indica:",
+        options: { A: "un modello di architettura alternativo alla architettura von Neumann", B: "un tipo di processori molto potenti e costosi che a partire dagli anni ’90 rimpiazzarono i più semplici processori RISC", C: "un modello architetturale diffuso negli anni ’90 e 2000 ora esteso alle CPU multi-core", D: "un modello architetturale ormai sostituito dal più moderno modello RISC" },
+        correct: "D"
+    },
+    {
+        text: "Ada Byron, contessa di Lovelace:",
+        options: { A: "fu assoldata da Charles Babbage per scrivere programmi per il suo Analytical Engine", B: "tradusse e commentò l'articolo di Federico Menabrea sull'Analytical Engine", C: "lavorò alla costruzione di quello che si può considerare il primo computer in senso moderno", D: "lavorò con Charles Babbage e Federico Menabrea alla stesura del progetto dell'Analytical Engine" },
+        correct: "B"
+    },
+    {
+        text: "Nei sistemi batch:",
+        options: { A: "l’addetto alla sala macchine poteva immettere nella memoria del computer il contenuto di pacchetti di schede perforate corrispondenti ad un gruppo di programmi da eseguire.", B: "il multitasking era garantito dalla presenza di opportune schede perforate di controllo", C: "la figura dell’addetto alla sala macchine non era più necessaria", D: "le schede perforate furono soppiantate dai nastri magnetici" },
+        correct: "A"
+    },
+    {
+        text: "La figura di Von Neumann è legata al progetto del computer EDVAC (Mercury delay lines). Il primo computer a programma memorizzato effettivamente costruito fu tuttavia l'SSEM (Williams-Kilburn Tubes).",
+        options: { A: "Falso (ENIAC...)", B: "Vero (EDVAC, Mercury delay lines, SSEM, Williams-Kilburn Tubes)", C: "Falso (Mark-I...)", D: "Falso (EDVAC, Magnetic core...)" },
+        correct: "B"
+    },
+    {
+        text: "L'EDVAC:",
+        options: { A: "è stato il primo computer a programma memorizzato effettivamente costruito", B: "è il computer a cui è legata la nascita del concetto di Architettura von Neumann", C: "Fu progettato da John von Neumann, coi contributi di H. Goldstine, J. Mauchly e J. Eckert", D: "si programmava riconfigurando switch e collegamenti elettrici" },
+        correct: "B"
+    },
+    {
+        text: "Tra gli eventi significativi della storia dei linguaggi di programmazione negli anni ’40 e ’50 troviamo:",
+        options: { A: "lo sviluppo del LISP e del BASIC", B: "lo Short Code del BINAC/UNIVAC e la formulazione della Backus-Naur Form", C: "la formulazione degli Initial Orders nell’EDSAC e il primo compilatore davvero implementato, l’AUTOCODE", D: "lo sviluppo del linguaggio e del relativo compilatore IT" },
+        correct: "C"
+    },
+    {
+        text: "La Apple:",
+        options: { A: "commissionò alla Microsoft lo sviluppo del DOS usato come sistema operativo dei suoi primi modelli", B: "per tutti i suoi modelli ha sempre usato un sistema operativo Unix-like", C: "usava come sistema operativo dei suoi primi modelli un semplice DOS, e trasse ispirazione per l’idea di interfaccia grafica dai progetti Xerox", D: "Negli anni ’80 ha sempre avuto la fetta principale del mercato" },
+        correct: "C"
+    },
+    {
+        text: "Tra i più importanti linguaggi sviluppati negli anni ’50 e ’60:",
+        options: { A: "il BASIC ebbe una diffusione ancora maggiore negli anni ’70 e ’80", B: "il FORTRAN scomparve, sostituito dall’ALGOL", C: "il PASCAL fu sostituito dall’ALGOL", D: "il BASIC e il FORTRAN caddero in disuso grazie al teorema di Böhm e Jacopini" },
+        correct: "A"
+    },
+    {
+        text: "Il linguaggio C:",
+        options: { A: "è efficiente ed estremamente portabile grazie all’uso del codice oggetto virtuale, il P-code", B: "è affascinante e sintetico, ma con un sistema di tipi rigido", C: "fu sviluppato nel contesto del progetto del Multics", D: "è efficiente, sintetico, modulare, ed estremamente portabile" },
+        correct: "D"
+    },
+    {
+        text: "Negli anni ’80:",
+        options: { A: "la comparsa del linguaggio ADA causò il declino del lato desktop del Pascal", B: "il Cobol venne tolto da tutte le scuole di accesso", C: "si iniziò a dubitare della definizione affermativa del linguaggio C, e lo sviluppo delle sue versioni object oriented, come il C++", D: "vennero sviluppati i primi linguaggi object oriented" },
+        correct: "C"
+    },
+    {
+        text: "Nella storia dell'informatica è considerata importante la disponibilità di sistemi operativi “free” come Unix e Linux perché:",
+        options: { A: "possono essere installati a costi molto contenuti", B: "possono essere studiati e modificati per renderne disponibili versioni migliori", C: "non intaccano il mercato dei sistemi proprietari", D: "possono essere installati su macchine con configurazioni hardware diverse" },
+        correct: "B"
+    },
+    {
+        text: "Diversi dispositivi elettronici sono stati usati per realizzare i circuiti logici. In ordine temporale troviamo prima tubi a vuoto, e poi transistor. I primi erano però lenti e fragili se comparati ai secondi, e inoltre questi ultimi erano più piccoli e consumavano meno corrente.",
+        options: { A: "Falso (transistor prima...)", B: "Falso (transistor, relè...)", C: "Falso (tubi a vuoto, relè...)", D: "Vero (tubi a vuoto, transistor, lenti e fragili, più piccoli...)" },
+        correct: "D"
+    },
+    {
+        text: "L’Analytical Engine:",
+        options: { A: "fu descritto per la prima volta in un articolo a firma di Charles Babbage e Ada Lovelace", B: "l’idea era di Charles Babbage, migliorata con i contributi di Ada Lovelace, avrebbe dovuto essere programmato a schede perforate", C: "fu effettivamente usato per la prima volta da Ada Lovelace", D: "fu migliorato grazie alle idee di Ada Lovelace e di Luigi Federico Menabrea" },
+        correct: "B"
+    },
+    {
+        text: "I primi esempi di Personal Computer sono considerati:",
+        options: { A: "i CDC 6000 e CDC 6700", B: "l’Olivetti Programma 101 (la Perottina) e i DATAPOINT 3300/2200", C: "gli Intel 4004 e 8008", D: "i PDP-1 della DEC e l’IBM 7030" },
+        correct: "B"
+    },
+    {
+        text: "I processori moderni:",
+        options: { A: "sono basati sui modelli RISC: Reduced Instruction for Semiconductor Cores", B: "sono basati sui modelli CISC: Cached Instructions for Set of Cores", C: "non sono più così esclusi soltanto transistor per implementare le porte logiche", D: "sono la conseguenza della rivoluzione RISC degli anni ’80" },
+        correct: "D"
+    },
+    {
+        text: "Tra le caratteristiche del Pascal troviamo:",
+        options: { A: "un sistema di tipi ricco ma rigido, in modo da facilitare la scrittura di programmi esenti da errori", B: "l’assenza di puntatori, pur rimanendo però più efficiente", C: "il passaggio di parametri attraverso l’uso del call by value, del call by name e del call by reference", D: "la facile adattabilità a piattaforme diverse attraverso un interprete bytecode" },
+        correct: "A"
+    },
+    {
+        text: "Lungo la storia dei linguaggi di programmazione, alcuni linguaggi sono stati capaci più di altri di diffondersi in ambito non informatico. Essi sono:",
+        options: { A: "il Simula 67 e lo Smalltalk", B: "il LISP e il Prolog", C: "il COBOL (applicazioni commerciali) e il BASIC (per studenti non informatici)", D: "l’Algol e il Fortran" },
+        correct: "C"
+    },
+    {
+        text: "Tra i diversi tipi di memoria in uso negli anni ’50:",
+        options: { A: "gli hard disk non comparivano", B: "Le Magnetic Core Memory, benché permanenti, erano usate principalmente come memoria primaria", C: "Le memorie a tamburo rientrano in quanto antenati degli hard disk", D: "Troviamo facilmente i flip flop" },
+        correct: "B"
+    },
+    {
+        text: "L’ALGOL:",
+        options: { A: "Grazie all’assenza di un sistema di tipi primitiva permetteva una prototipizzazione veloce", B: "Derivò i concetti di call by value e call by name da LISP e FORTRAN", C: "Negli anni ’2000 rivaleggiò col COBOL", D: "Fu definito da Tony Hoare così avanti nei tempi da essere migliore anche della maggior parte dei suoi successori" },
+        correct: "D"
+    },
+    {
+        text: "Tra gli eventi importanti per la storia delle architetture negli anni ’60 ricordiamo:",
+        options: { A: "l’invenzione del mouse; l’invenzione della cache; lo sviluppo della Olivetti Programma 101", B: "il primo modello di transistor", C: "la commercializzazione dei computer della serie IBM/360; la nascita dei primi microprocessori", D: "la commercializzazione dei computer della serie IBM/360; la nascita dei primi microprocessori" },
+        correct: "A"
+    },
+    {
+        text: "Nei sistemi batch:",
+        options: { A: "le schede perforate potevano contenere: il codice dei programmi, i dati di input dei programmi, e i comandi di controllo", B: "i nastri magnetici furono soppiantati dagli hard disk", C: "i programmatori potevano monitorare in diretta l’esecuzione", D: "l’adozione degli hard disk permise di implementare una forma più efficiente di multitasking" },
+        correct: "A"
+    },
+    {
+        text: "Il linguaggio di programmazione BASIC:",
+        options: { A: "era spesso usato al posto dell’ALGOL perché più efficiente", B: "permetteva la scrittura di programmi strutturati eleganti", C: "fu fondamentale per la diffusione di una cultura informatica tra il grande pubblico negli anni ’70 e ’80", D: "fu il linguaggio che ispirò lo sviluppo del Pascal" },
+        correct: "C"
+    },
+    {
+        text: "Le prime architetture RISC (Restricted Instruction Set Computer):",
+        options: { A: "sono ormai state sostituite dai modelli per moderni processori multi-core CISC", B: "a causa del limitato set di istruzioni non permettevano la scrittura di qualsiasi programma", C: "usavano istruzioni di lunghezza uguale", D: "usavano poche e semplici istruzioni macchina. Dunque erano facili da costruire, ma lente" },
+        correct: "C"
+    },
+    {
+        text: "L’ENIAC:",
+        options: { A: "è il computer da cui deriva l’espressione architettura von Neumann", B: "fu progettato da H. Goldstine, J. Mauchly, J. Eckert e J. von Neumann", C: "fu impiegato principalmente per il calcolo delle traiettorie balistiche durante la seconda guerra mondiale", D: "fu progettato con lo scopo iniziale di calcolare traiettorie balistiche, ma entrò in funzione solo alla fine della guerra" },
+        correct: "D"
+    },
+    {
+        text: "Il sistema operativo Linux:",
+        options: { A: "è il sistema operativo più utilizzato nei personal computer", B: "è una variante dello Unix sviluppata per girare su personal computer", C: "per scelta esplicita di Linus Torvalds, non può essere fatto pagare", D: "si è diffuso dagli anni ’90 grazie al progetto GNU di Richard Stallman" },
+        correct: "B"
+    },
+    {
+        text: "Il sistema Unix:",
+        options: { A: "fu sviluppato inizialmente in C", B: "ha introdotto molte idee innovative e originali, come le fork e la shell", C: "è il capostipite di buona parte dei sistemi operativi usati oggi, anche nei dispositivi mobile", D: "nacque come naturale evoluzione dal sistema MULTICS" },
+        correct: "C"
+    },
+    {
+        text: "Gary Kildall è stato l'ideatore del CP/M, che poteva essere trasportato facilmente su qualsiasi piattaforma riscrivendone solo la parte nota come BIOS.",
+        options: { A: "Falso (DOS, UEFI...)", B: "Vero (CP/M, BIOS...)", C: "Falso (CP/M, BIOS, Intel, Apple)", D: "Falso (CP/M, BIOS, IBM, Steve Jobs)" },
+        correct: "B"
+    },
+    {
+        text: "Il linguaggio C:",
+        options: { A: "è apprezzato perché favorisce la scrittura di programmi facili da comprendere e molto portabili", B: "fu usato per implementare la prima versione del loro sistema da Ritchie e Thompson", C: "è ormai poco usato", D: "è un linguaggio in cui è facile fare errori di programmazione, a causa di un sistema di tipi poco rigido" },
+        correct: "D"
+    },
+    {
+        text: "Negli anni ’50:",
+        options: { A: "furono sviluppati, quasi in parallelo, il COBOL, il LISP, e il BASIC", B: "Grace Murray Hopper fornisce contributi fondamentali allo sviluppo dei primi linguaggi ad alto livello", C: "Vengono messi a punto i fondamenti della programmazione strutturata", D: "viene inventato il costrutto FOR" },
+        correct: "B"
+    },
+    {
+        text: "Nella storia dei Personal Computer:",
+        options: { A: "le interfacce grafiche furono ipotizzate per la prima volta da Douglas Engelbart", B: "le interfacce grafiche furono utilizzate per la prima volta dalla Apple nel sistema Lisa", C: "le interfacce grafiche hanno costituito un miglioramento fondamentale in tutti i sistemi operativi in cui sono state implementate per la prima volta (Alto, Macintosh, Win95)", D: "le interfacce grafiche furono introdotte per la prima volta in un sistema operativo della Microsoft" },
+        correct: "C"
+    },
+    {
+        text: "Nella storia dei Sistemi Operativi, il Linux:",
+        options: { A: "è ormai diventato un sistema operativo commerciale e costoso", B: "fu concepito da Linus Torvalds come evoluzione del MINIX", C: "fu sviluppato da Linus Torvalds con l’intento iniziale di avere una sorta di sistema operativo Unix che potesse essere usato con il suo personal computer", D: "è diventato in pochi anni il sistema operativo di riferimento per personal computer" },
+        correct: "C"
+    },
+    {
+        text: "All'inizio degli anni '80 ha luogo la cosiddetta Rivoluzione RISC. Il vecchio modello (CISC) viene sostituito da architetture dotate di un instruction set fatto di istruzioni di dimensione costante e semplici.",
+        options: { A: "Falso (Variabile, semplici)", B: "Vero (RISC, CISC, costante, semplici)", C: "Falso (Variabile, illimitata)", D: "Falso (MIPS, CISC, costante, variabile)" },
+        correct: "B"
+    },
+    {
+        text: "Nella storia dei Sistemi Operativi, i sistemi timesharing:",
+        options: { A: "sono stati ideati da John McCarthy tra la fine degli anni '50 e l'inizio degli anni '60", B: "Edger Dijkstra sviluppò il concetto di sistema multiprogrammato quasi contemporaneamente", C: "Linus Torvalds si dedicò allo sviluppo del Linux con l'obiettivo di scavalcare il monopolio Unix", D: "Gary Kildall collaborò allo sviluppo dell'MS-DOS" },
+        correct: "A"
+    },
+    {
+        text: "Nella storia dei sistemi operativi per PC, l'esperienza con sistemi come Unix o Multics:",
+        options: { A: "ha permesso di capire che la funzione fondamentale era implementare un file system grafico", B: "ha permesso di capire come il timesharing potesse essere implementato nei PC", C: "non ha influenzato in alcun modo lo sviluppo dei sistemi operativi per i primi personal computer (risorse troppo limitate)", D: "ispirò Gary Kildall nell'invenzione del BIOS" },
+        correct: "C"
+    },
+    {
+        text: "John von Neumann:",
+        options: { A: "ha dato il nome ad un modello architetturale da lui stesso inventato negli anni '80", B: "ha dato il nome ad un modello architetturale pilotabile via telescriventi", C: "ha dato il nome ad un modello architetturale per computer in cui dati e programmi condividono la memoria principale", D: "ha dato il nome ad un modello architetturale ormai soppiantato" },
+        correct: "C"
+    },
+    {
+        text: "Nella storia dei linguaggi di programmazione, il Prolog:",
+        options: { A: "fu alla base di un programma di ricerca giapponese per processori RISC", B: "fu alla base di un progetto fallito a causa dell'avvento CISC", C: "fu alla base di un progetto che aveva come obiettivo lo sviluppo di supercomputer che dovevano usarlo sfruttandone il parallelismo intrinseco", D: "fu sviluppato all’interno del progetto 5th Generation Computer Systems" },
+        correct: "C"
+    },
+    {
+        text: "Nella storia dei linguaggi di programmazione:",
+        options: { A: "Il BASIC fu pensato per studenti non informatici e fu fondamentale per la diffusione di una cultura informatica", B: "Il COBOL per un periodo fu il linguaggio più diffuso", C: "Il Prolog era particolarmente adatto all’uso negli ambienti scientifici", D: "Il LISP fu pensato apposta per applicazioni non sequenziali" },
+        correct: "A"
+    },
+    {
+        text: "Il linguaggio di programmazione BASIC:",
+        options: { A: "dopo un successo iniziale ebbe una rapida dismissione", B: "Corrado Böhm e Giuseppe Jacopini dimostrarono che non permetteva la scrittura di programmi strutturati", C: "incoraggiava uno stile di programmazione confuso e potenzialmente soggetto ad errori", D: "fu definito da Dijkstra più indegno nei metodi" },
+        correct: "C"
+    },
+    {
+        text: "Il transistor:",
+        options: { A: "ha costituito un avanzamento tecnologico fondamentale nell’informatica rispetto ai tubi a vuoto", B: "fu il punto di svolta che consentì la costruzione delle prime CPU miniaturizzate su una singola fetta", C: "non modificò la tecnologia di costruzione delle schede interne", D: "permise di costruire computer più economici ma più soggetti a guasti" },
+        correct: "A"
+    },
+    {
+        text: "L'ENIAC:",
+        options: { A: "non fu mai effettivamente usato per il calcolo delle traiettorie balistiche", B: "fu progettato da John von Neumann", C: "avrebbe dovuto contribuire a migliorare l’efficacia dei cannoni usati durante la seconda guerra mondiale", D: "fu sviluppato anche grazie agli studi di John von Neumann" },
+        correct: "C"
+    },
+    {
+        text: "Tra gli anni ’50 e gli anni ’60:",
+        options: { A: "il FORTRAN competeva con Basic e Simula67", B: "il FORTRAN fu il linguaggio più diffuso insieme al LISP", C: "il FORTRAN fu usato principalmente per la descrizione degli algoritmi", D: "il FORTRAN fu tra i linguaggi più diffusi e usati" },
+        correct: "D"
+    },
+    {
+        text: "Negli anni ’80:",
+        options: { A: "si afferma il C a causa dell’inizio del lento declino del Pascal", B: "si abbozza la definitiva affermazione del linguaggio C, dell’ADA e del Pascal", C: "il linguaggio C incontra il suo declino", D: "il linguaggio Java propone nell’epico della diffusione del Pascal" },
+        correct: "A"
+    },
+    {
+        text: "In ordine cronologico, tra i linguaggi in cui incominciano a comparire le prime idee “object oriented” troviamo:",
+        options: { A: "Simula67, seguito da Smalltalk (Alan Kay).", B: "Java, seguito da Object-C", C: "Smalltalk, seguito da Simula67", D: "il linguaggio C, seguito da Alan Kay" },
+        correct: "A"
+    },
+    {
+        text: "Nella storia dei sistemi operativi, il MULTICS:",
+        options: { A: "permise per la prima volta di implementare il concetto di file system in senso moderno", B: "fu sviluppato in C", C: "fu sviluppato, sotto la guida di Robert Fano, a partire dall’esperienza del CTSS", D: "fu negli anni ’80 il più diffuso sistema operativo" },
+        correct: "C"
+    },
+    {
+        text: "Nella storia dei Sistemi Operativi, il multitasking:",
+        options: { A: "rese i nastri magnetici molto più veloci", B: "fu la grande innovazione proposta per la prima volta da Fernando Corbató", C: "fu implementato per la prima volta nel sistema Atlas", D: "fu implementato tra l’altro nei sistemi operativi Atlas, CTSS, MULTICS e OS/360" },
+        correct: "D"
+    },
+    {
+        text: "Tra le macchine considerate antenate dei PC troviamo:",
+        options: { A: "I computer concepiti da Seymour Cray", B: "il PDP-1 della DEC", C: "i primi prodotti commerciali della Intel", D: "il DATAPOINT 2200 e, prima ancora, l’Olivetti Programma 101" },
+        correct: "D"
+    },
+    {
+        text: "Il Manchester Small Scale Experimental Machine (SSEM):",
+        options: { A: "usava come supporto di memoria primaria le Mercury Delay Lines.", B: "fu progettato e costruito copiando ed estendendo il progetto dell’ENIAC", C: "fu il primo computer a programma memorizzato a diventare effettivamente operativo", D: "è il computer da cui deriva l’espressione architettura von Neumann" },
+        correct: "C"
+    },
+    {
+        text: "Nelle CPU progettate e costruite negli ultimi anni:",
+        options: { A: "si adottò un modello architetturale messo a punto fra la fine degli anni ’70 e l’inizio degli anni ’80 da Hennessy e Patterson", B: "si adottò il modello architetturale noto con l’acronimo CISC", C: "le porte logiche sono realizzate mediante microprocessori", D: "si adottò il modello architetturale noto con l’acronimo RISC: Reformulated Instructions..." },
+        correct: "A"
+    },
+    {
+        text: "Dei diversi tipi di memorie sviluppate e utilizzate lungo la storia dell’Informatica possiamo dire che:",
+        options: { A: "le Magnetic Core Memory incominciarono a declinare poco dopo l’invenzione del transistor", B: "I Williams-Kilburn tubes furono inizialmente testati come memorie dell’SSEM", C: "L’invenzione degli hard disk negli anni ’70 fu responsabile del declino delle memorie a tamburo", D: "Le Mercury Delay Lines furono inventate da John Eckert" },
+        correct: "B"
+    },
+    {
+        text: "Il linguaggio Java:",
+        options: { A: "si può considerare il primo dei linguaggi di scripting general purpose", B: "viene ormai usato in modo esteso al posto del C anche per scrivere software di sistema", C: "è estremamente portabile grazie alla Java Virtual Machine", D: "è stato il linguaggio che ha ispirato Tim Berners Lee" },
+        correct: "C"
+    },
+    {
+        text: "L’idea alla base dei sistemi batch era di:",
+        options: { A: "ricorrere ad un programma speciale che sovrapponeva I/O", B: "usare una sorta di supervisor per togliere la CPU in caso di I/O", C: "ricorrere a personale specializzato per l'inserimento dati", D: "automatizzare il lavoro necessario per lanciare i programmi uno dopo l’altro (programma che amministra altri programmi)" },
+        correct: "D"
+    },
+    {
+        text: "Il sistema Unix:",
+        options: { A: "dopo essere stato scritto inizialmente in C, è poi stato portato su varie altre piattaforme", B: "già pochi anni dopo la sua iniziale diffusione, fu in grado di suscitare un ampio interesse (Unix User Group)", C: "il fatto di essere stato scritto fin dall’inizio in C è stata la ragione del successo", D: "non poté essere sfruttato commercialmente dalla AT&T" },
+        correct: "B"
+    },
+    {
+        text: "Tra gli eventi importanti per la storia delle architetture negli anni '60 ricordiamo:",
+        options: { A: "IBM/360; Intel 1103; CDC 8600", B: "1) IBM/360; 2) CDC 6600 di Seymour Cray; 3) l'ideazione dello schema di Tomasulo", C: "Hard disk; CDC 6600; Olivetti P101", D: "IBM/360; mouse; Intel 1103" },
+        correct: "B"
+    },
+    {
+        text: "Il linguaggio Pascal:",
+        options: { A: "usando solo pochi tipi di base, risultò efficiente", B: "era molto popolare negli anni '80, ma cedette il passo a C e Prolog", C: "non era apprezzato per la scarsa portabilità", D: "introdusse tra le altre cose l’idea di un codice oggetto virtuale che favoriva l’uso su piattaforme diverse" },
+        correct: "D"
+    },
+    {
+        text: "Nella storia dei Personal Computer:",
+        options: { A: "il BIOS costituì il primo esempio di sistema operativo general purpose", B: "l'invenzione del BIOS permise di scrivere applicazioni condivise", C: "Gary Kildall ebbe un ruolo fondamentale nell'inventare una tecnica per portare velocemente un sistema operativo (BIOS)", D: "l'enorme successo del DOS fu dovuto al codice sorgente in C" },
+        correct: "C"
+    },
+    {
+        text: "Il linguaggio Pascal:",
+        options: { A: "favoriva la portabilità su piattaforme diverse attraverso un interprete bytecode", B: "favoriva la scrittura di programmi veloci grazie ai puntatori", C: "rispetto ad altri linguaggi incoraggiava la scrittura di programmi senza errori grazie ad un sistema di tipatura molto rigoroso", D: "favoriva la scrittura di programmi organizzati in procedure" },
+        correct: "C"
+    },
+    {
+        text: "Tra gli eventi importanti per la storia delle architetture negli anni '40 ricordiamo:",
+        options: { A: "Alan Turing contribuisce a decrittare messaggi cifrati usando macchine elettromeccaniche note come bombe", B: "Alan Turing collabora con i servizi segreti per decifrare messaggi; entra in funzione ENIAC", C: "vengono concepiti due modelli architetturali: Harward e RISC", D: "vengono progettati e costruiti i primi computer moderni" },
+        correct: "A"
+    },
+    {
+        text: "La Apple fu fondata da Steve Jobs e da Steve Wozniak. Grazie all'enorme successo di vendite del Macintosh, (ispirato al sistema Alto della Xerox) le sorti dell'azienda si risollevarono.",
+        options: { A: "Steve Wozniak, Microsoft, Lisa, 5150", B: "Steve Wozniak, IBM, Apple II, 5150", C: "Steve Wozniak, IBM, Lisa, Alto", D: "Steve Wozniak, IBM, Macintosh, Alto" },
+        correct: "D"
+    },
+    {
+        text: "Nella storia dei linguaggi di programmazione, quale affermazione sulle critiche è vera?",
+        options: { A: "Il Fortran non era strutturato...", B: "lo Smalltalk cercò di migliorare i difetti del BASIC...", C: "Il BASIC favoriva la scrittura del cosiddetto spaghetti code, e secondo alcuni impediva di imparare a programmare.", D: "il Prolog fu responsabile del fallimento..." },
+        correct: "C"
+    },
+    {
+        text: "Il transistor:",
+        options: { A: "è sostanzialmente un amplificatore di segnale elettrico, che può anche essere usato come switch", B: "è stato responsabile di importanti avanzamenti come le memorie a nucleo magnetico", C: "funzionando come un interruttore, permette di memorizzare un singolo bit come gli anelli di ferrite", D: "è stato il componente fondamentale per la costruzione dei computer negli anni '60" },
+        correct: "A"
+    },
+    {
+        text: "Il ruolo dei Sistemi Operativi nel cambiare la percezione dell'informatica:",
+        options: { A: "hanno reso sempre più facile scrivere programmi", B: "non è più necessario saper programmare per usare un computer", C: "hanno reso sempre più facili da usare macchine sempre più sofisticate e complesse", D: "permettono di sfruttare a fondo il potere computazionale" },
+        correct: "C"
+    },
+    {
+        text: "Per codice non strutturato si intende codice in cui la computazione procede attraverso test e un uso estensivo di GOTO. Furono Corrado Bohm e Giuseppe Jacopini a dimostrare che era possibile scrivere qualsiasi programma usando solo selezione o iterazione.",
+        options: { A: "Donald Knuth...", B: "Edsger Dijkstra, Basic e Fortran, Corrado Bohm e Giuseppe Jacopini, selezione o iterazione", C: "Edsger Dijkstra, Algol e Cobol...", D: "Edsger Dijkstra, Basic e Fortran..." },
+        correct: "B"
+    },
+    {
+        text: "Il linguaggio Java:",
+        options: { A: "è stato il linguaggio a partire dal quale è iniziato lo sviluppo di Internet", B: "fu sviluppato per competere con il C++", C: "il suo successo iniziale è strettamente legato alla nascita quasi contemporanea del World Wide Web", D: "si può considerare il capostipite di tutti i linguaggi di scripting" },
+        correct: "C"
+    },
+    {
+        text: "Negli anni '60:",
+        options: { A: "L'ALGOL incominciò a sostituirsi al FORTRAN per l'implementazione", B: "L'ALGOL si affermò come linguaggio ad alto livello per la descrizione degli algoritmi", C: "il BASIC e il FORTRAN incominciarono a cadere in disuso", D: "fu sviluppato il BASIC, che incominciò il suo declino" },
+        correct: "B"
+    },
+    {
+        text: "L'EDVAC:",
+        options: { A: "fu progettato da John von Neumann, ed è da esso che prese poi il via il progetto ENIAC", B: "E' stato il primo computer a programma memorizzato ad usare Williams-Kilburn tubes", C: "fu progettato per facilitare il calcolo delle traiettorie balistiche", D: "non è stato il primo computer a programma memorizzato ad essere effettivamente costruito e a diventare operativo" },
+        correct: "D"
+    },
+    {
+        text: "Nella storia dei sistemi operativi, il MULTICS:",
+        options: { A: "fu negli anni '60 il più diffuso sistema operativo", B: "fu sviluppato in C, causa di inefficienza", C: "permise per la prima volta di implementare il concetto di file system", D: "fu sviluppato, sotto la guida di Robert Fano, a partire dall'esperienza del CTSS" },
+        correct: "D"
+    },
+    {
+        text: "In che modo i sistemi time sharing hanno influenzato i primi sistemi operativi per personal computer?",
+        options: { A: "ispirò Gary Kildall nell'invenzione del BIOS", B: "in nessun modo, perché i primi personal computer erano macchine semplicissime e dotate di pochissime risorse", C: "permisero di capire che la funzione fondamentale era il file system gerarchico", D: "permise di implementare i servizi che fornivano anche sui personal computer" },
+        correct: "B"
+    },
+    {
+        text: "Nella storia dei Sistemi Operativi:",
+        options: { A: "il concetto di multitasking fu formulato già negli anni ’50 come tecnica per limitare le attese dovute all'uso delle periferiche di I/O", B: "l'implementazione del multitasking permise di usare i nastri magnetici come accesso diretto", C: "il multitasking incominciò ad essere implementato quando le CPU ebbero un timer hardware", D: "il multitasking fu probabilmente la più importante idea originale introdotta dagli OS/360" },
+        correct: "A"
+    }
+];
+    // --- INIZIO NUOVO CODICE LOGICA ---
+
+    let currentQuestions = []; // Conterrà solo le 16 domande estratte
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const questionText = document.getElementById("question-text");
+    const optionsContainer = document.getElementById("options-container");
+    const nextButton = document.getElementById("next-btn");
+    const progressText = document.getElementById("progress-text");
+    const quizContainer = document.getElementById("quiz");
+    const scoreContainer = document.getElementById("score-container");
+    const finalScoreText = document.getElementById("final-score");
+
+    // Funzione per mischiare l'array (algoritmo Fisher-Yates)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function startQuiz() {
+        // 1. Resetta il punteggio
+        score = 0;
+        currentQuestionIndex = 0;
+
+        // 2. Prepara le domande: copia l'elenco originale per non rovinarlo
+        let allQuestions = [...questions]; 
+        
+        // 3. Mischia le domande
+        shuffleArray(allQuestions);
+
+        // 4. Prendi solo le prime 16
+        currentQuestions = allQuestions.slice(0, 16);
+
+        // 5. Mostra l'interfaccia corretta
+        quizContainer.style.display = "block";
+        scoreContainer.style.display = "none";
+        showQuestion();
+    }
+
+    function showQuestion() {
+        resetState();
+        let currentQuestion = currentQuestions[currentQuestionIndex];
+        
+        questionText.innerText = currentQuestion.text;
+        progressText.innerText = `Domanda ${currentQuestionIndex + 1} di ${currentQuestions.length}`;
+
+        for (const [key, value] of Object.entries(currentQuestion.options)) {
+            const button = document.createElement("button");
+            button.innerText = `${key}) ${value}`;
+            button.classList.add("btn");
+            button.dataset.key = key;
+            button.addEventListener("click", selectAnswer);
+            optionsContainer.appendChild(button);
+        }
+    }
+
+    function resetState() {
+        nextButton.style.display = "none";
+        while (optionsContainer.firstChild) {
+            optionsContainer.removeChild(optionsContainer.firstChild);
+        }
+    }
+
+    function selectAnswer(e) {
+        const selectedBtn = e.target;
+        const selectedKey = selectedBtn.dataset.key;
+        const correctKey = currentQuestions[currentQuestionIndex].correct;
+
+        // Disabilita i bottoni e colora
+        Array.from(optionsContainer.children).forEach(button => {
+            button.disabled = true;
+            if (button.dataset.key === correctKey) {
+                button.classList.add("correct");
+            }
+        });
+
+        if (selectedKey === correctKey) {
+            score += 2; // ORA VALE 2 PUNTI
+        } else {
+            selectedBtn.classList.add("wrong");
+        }
+
+        nextButton.style.display = "block";
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < currentQuestions.length) {
+            showQuestion();
+        } else {
+            showScore();
+        }
+    }
+
+    function showScore() {
+        quizContainer.style.display = "none";
+        scoreContainer.style.display = "block";
+        
+        const maxScore = currentQuestions.length * 2; // 16 * 2 = 32 punti totali
+        const passThreshold = 18; // Soglia per passare (sufficienza)
+
+        let resultMessage = "";
+        let colorStyle = "";
+
+        if (score >= passThreshold) {
+            resultMessage = "✅ COMPLIMENTI! ESAME SUPERATO.";
+            colorStyle = "color: #28a745; font-weight: bold;";
+        } else {
+            resultMessage = "❌ PECCATO! ESAME NON SUPERATO.";
+            colorStyle = "color: #dc3545; font-weight: bold;";
+        }
+
+        finalScoreText.innerHTML = `
+            <h2 style="${colorStyle}">${resultMessage}</h2>
+            <p>Il tuo punteggio: <strong>${score}</strong> su ${maxScore}</p>
+            <p style="font-size: 0.9rem; color: #666;">(Soglia minima per passare: ${passThreshold})</p>
+        `;
+    }
+
+    // Avvia il quiz appena carica la pagina
+    startQuiz();
+</script>
+
+</body>
+</html>
