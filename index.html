@@ -5,18 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Storia dell'Informatica</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .quiz-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; width: 100%; }
-        h1 { text-align: center; color: #333; }
-        .question { font-size: 1.2rem; margin-bottom: 1.5rem; color: #2c3e50; }
-        .options { display: flex; flex-direction: column; gap: 10px; }
-        .btn { padding: 15px; border: 2px solid #ddd; background: white; border-radius: 5px; cursor: pointer; text-align: left; transition: all 0.2s; font-size: 1rem; }
-        .btn:hover { background-color: #f0f0f0; border-color: #bbb; }
-        .btn.correct { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
-        .btn.wrong { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
-        #next-btn { margin-top: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; display: none; width: 100%; font-size: 1.1rem; }
-        #score-container { text-align: center; display: none; }
-    </style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .quiz-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 800px; width: 100%; }
+    h1 { text-align: center; color: #333; }
+    .question { font-size: 1.1rem; margin-bottom: 1.5rem; color: #2c3e50; line-height: 1.6; }
+    
+    /* Stile Scelta Multipla */
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .btn { padding: 15px; border: 2px solid #ddd; background: white; border-radius: 5px; cursor: pointer; text-align: left; transition: all 0.2s; font-size: 1rem; }
+    .btn:hover:not(:disabled) { background-color: #f0f0f0; border-color: #bbb; }
+    .btn.correct { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+    .btn.wrong { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+    
+    /* Stile Trascinamento */
+    .draggable-container { margin-top: 20px; padding: 15px; background: #eee; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; min-height: 50px;}
+    .draggable { background: #fff; border: 2px solid #007bff; color: #007bff; padding: 8px 15px; border-radius: 20px; cursor: grab; font-weight: bold; user-select: none; }
+    .draggable.dragging { opacity: 0.5; }
+    .drop-zone { display: inline-block; width: 120px; height: 30px; border-bottom: 2px dashed #333; margin: 0 5px; vertical-align: middle; text-align: center; background: #fafafa; font-weight: bold; color: #333; }
+    .drop-zone.filled { border-bottom: 2px solid #28a745; background: #e9ecef; }
+    .drop-zone.error { border-bottom: 2px solid #dc3545; color: #dc3545; }
+
+    /* Controlli */
+    #next-btn, #check-btn { margin-top: 20px; padding: 12px 20px; color: white; border: none; border-radius: 5px; cursor: pointer; display: none; width: 100%; font-size: 1.1rem; }
+    #next-btn { background-color: #007bff; }
+    #check-btn { background-color: #28a745; display: none; } /* Verde per confermare trascinamento */
+
+    #score-container { text-align: center; display: none; }
+</style>
 </head>
 <body>
 
@@ -38,6 +53,39 @@
 <script>
     // inserite domande del file 
     const questions = [
+    {
+        type: "drag",
+        text: "Il [[]] era descritto come un potente congegno protatile della dimensione di un blocco degli appunti. La sua concezione fu influenzata dagli scritti di [[]] che aveva descritto il profondo impatto culturale dell'invenzione di Gutenberg. Chiamandolo così, [[]] voleva suggerire che esso avrebbe avuto un impatto culturale simile. I computer hanno la possibilità di [[]] qualsiasi altro modello descrittivo, cioè qualsiasi altro [[]], diventando così un [[]] che è [[]] perché può rispondere alle richieste e agli esperimenti dell'utente, coinvolgendolo in una [[]] bidirezionale che si può collegare con il fenomeno del [[]] nella cibernetica.",
+        answers: ["Dynabook", "Marshall McLuhan", "Kay", "simulare", "medium", "metamedium", "dinamico", "conversazione", "feedback"]
+    },
+    {
+        type: "drag",
+        text: "È stato il [[]] guidato da Alan Kay allo Xerox PARC durante gli anni ’70 che ha definito l’immagine del computer come [[]], usando la terminologia di Bolter e Grusin per indicare [[]]. D’altra parte, [[]], inventore del termine [[]] e ispiratore di molte idee che sono poi confluite nel personal computer, era critico verso la simulazione della carta attraverso lo schermo del computer, preferendo un approccio come quello di [[]] di Sutherland, che sfrutta in modo originale le potenzialità del computer, e vedeva invece come disciplina centrale la [[]], arte e scienza delle tecniche di presentazione.",
+        answers: ["Learning Research Group", "remediation machine", "la rappresentazione di un medium in un altro", "Ted Nelson", "ipertesto", "Sketchpad", "fantics"]
+    },
+    {
+        type: "drag",
+        text: "Otlet scrisse eloquentemente a proposito della necessità di un [[]] di trattamento dell’informazione che comprendesse tutto ciò che andava dalla creazione di una [[]] di catalogo a nuove forme di pubblicazione, dalla gestione delle [[]] allo sviluppo di una [[]] simile a quella che aveva in mente Leibniz. Centrale in questa impresa erano la [[]], che costituiva un linguaggio universale di classificazione, una nuova agenzia per la gestione dell’informazione detta [[]] e una metodologia per la suddivisione dell’informazione da memorizzare basata sul [[]].",
+        answers: ["sistema internazionale", "scheda", "biblioteche", "enciclopedia universale", "Classificazione Decimale Universale", "Ufficio della Documentazione", "principio monografico"]
+    },
+    {
+        type: "drag",
+        text: "L’idea di medium universale esprime la possibilità del computer di [[]] qualsiasi altro medium. L’idea è dovuta ad [[]] che mise in evidenza attraverso il suo lavoro alla [[]] anche il carattere [[]] del computer come medium. Prima di Kay, già [[]] aveva osservato che un repertorio di sorprendentemente pochi processi primitivi basta a costruire qualsiasi [[]] che possa essere descritto in modo esplicito in un linguaggio qualsiasi, un’altra espressione della [[]]. Infine, [[]], nel suo lavoro sul suo modello matematico di [[]], aveva costruito una [[]], che anticipa il concetto di interprete dell’informatica moderna.",
+        answers: ["simulare", "Alan Kay", "Xerox PARC", "dinamico", "Douglas Engelbart", "processo di manipolazione di simboli", "universalità", "Alan Turing", "macchina calcolatrice", "macchina calcolatrice universale"]
+    },
+    {
+        type: "drag",
+        text: "Intendiamo con [[]] un insieme di schemi che facilitano l’interazione con [[]] trasformabile. È essenzialmente un altro nome per le [[]]. Nel pensare ad un tale sistema dobbiamo essere preparati ad abbandonare lo schema della [[]] fisica con la sua disposizione di scaffali, [[]], sale di lettura e così via. In questi sistemi l’[[]] in un [[]] sarà svincolata dalle sue [[]], e potrà essere trasmessa senza bisogno di trasportare [[]].",
+        answers: ["sistema procognitivo", "informazione", "biblioteche del futuro", "biblioteca", "schede", "informazione", "libro", "pagine", "materiale"]
+    },
+    {
+        type: "drag",
+        text: "Le relazioni tra i fondatori della cibernetica, della teoria matematica della calcolabilità e della teoria dell'informazione sono state frequenti. Da un lato, [[]] e Turing si incontrano ai [[]] nel 1943 e discutono quotidianamente durante la visita di Turing. Wiener, von Neumann e McCulloch e Pitts partecipano tutti alle [[]], che sono l’atto di nascita della cibernetica. D'altra parte, [[]] e McCulloch e Pitts sono tutti membri del [[]] del MIT. [[]] visita von Neumann allo [[]] nel 1937. Infine, sia [[]] che Wiener sviluppano una teoria matematica della comunicazione.",
+        answers: ["Shannon", "Bell Labs", "Macy Conferences", "Norbert Wiener", "Research Laboratory of Electronics", "Turing", "Institute for Advanced Studies di Princeton", "Shannon"]
+    },
+    
+
+
     {
         text: "La Intel fu fondata alla fine degli anni '60 con l'obiettivo di progettare e produrre:",
         options: { A: "personal computer", B: "memorie a semiconduttore", C: "Digital Equipment Corporation" },
@@ -506,19 +554,26 @@
 ];
     // --- INIZIO NUOVO CODICE LOGICA ---
 
-    let currentQuestions = []; // Conterrà solo le 16 domande estratte
+    // --- LOGICA DEL QUIZ ---
+
+    let currentQuestions = [];
     let currentQuestionIndex = 0;
     let score = 0;
 
+    const quizContainer = document.getElementById("quiz");
     const questionText = document.getElementById("question-text");
     const optionsContainer = document.getElementById("options-container");
     const nextButton = document.getElementById("next-btn");
+    const checkButton = document.createElement("button"); // Bottone per confermare drag & drop
+    checkButton.id = "check-btn";
+    checkButton.innerText = "Conferma Risposta";
+    checkButton.onclick = checkDragAnswer;
+    document.getElementById("quiz").appendChild(checkButton); // Aggiungilo al DOM
+
     const progressText = document.getElementById("progress-text");
-    const quizContainer = document.getElementById("quiz");
     const scoreContainer = document.getElementById("score-container");
     const finalScoreText = document.getElementById("final-score");
 
-    // Funzione per mischiare l'array (algoritmo Fisher-Yates)
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -527,20 +582,12 @@
     }
 
     function startQuiz() {
-        // 1. Resetta il punteggio
         score = 0;
         currentQuestionIndex = 0;
-
-        // 2. Prepara le domande: copia l'elenco originale per non rovinarlo
-        let allQuestions = [...questions]; 
-        
-        // 3. Mischia le domande
+        let allQuestions = [...questions];
         shuffleArray(allQuestions);
-
-        // 4. Prendi solo le prime 16
-        currentQuestions = allQuestions.slice(0, 16);
-
-        // 5. Mostra l'interfaccia corretta
+        currentQuestions = allQuestions.slice(0, 16); // Prendi 16 domande a caso
+        
         quizContainer.style.display = "block";
         scoreContainer.style.display = "none";
         showQuestion();
@@ -548,34 +595,48 @@
 
     function showQuestion() {
         resetState();
-        let currentQuestion = currentQuestions[currentQuestionIndex];
+        let q = currentQuestions[currentQuestionIndex];
         
-        questionText.innerText = currentQuestion.text;
         progressText.innerText = `Domanda ${currentQuestionIndex + 1} di ${currentQuestions.length}`;
 
-        for (const [key, value] of Object.entries(currentQuestion.options)) {
-            const button = document.createElement("button");
-            button.innerText = `${key}) ${value}`;
-            button.classList.add("btn");
-            button.dataset.key = key;
-            button.addEventListener("click", selectAnswer);
-            optionsContainer.appendChild(button);
+        // Controlla il tipo di domanda
+        if (q.type === "drag") {
+            renderDragDrop(q);
+        } else {
+            renderMultipleChoice(q);
         }
     }
 
     function resetState() {
         nextButton.style.display = "none";
-        while (optionsContainer.firstChild) {
-            optionsContainer.removeChild(optionsContainer.firstChild);
+        checkButton.style.display = "none";
+        questionText.innerHTML = "";
+        optionsContainer.innerHTML = "";
+        // Rimuovi eventuali container extra del drag & drop se esistono
+        const existingDrag = document.querySelector(".draggable-container");
+        if(existingDrag) existingDrag.remove();
+    }
+
+    // --- LOGICA SCELTA MULTIPLA ---
+    function renderMultipleChoice(q) {
+        questionText.innerText = q.text;
+        
+        // Se non c'è la proprietà 'type' o è 'choice'
+        for (const [key, value] of Object.entries(q.options)) {
+            const button = document.createElement("button");
+            button.innerText = `${key}) ${value}`;
+            button.classList.add("btn");
+            button.dataset.key = key;
+            button.addEventListener("click", selectChoiceAnswer);
+            optionsContainer.appendChild(button);
         }
     }
 
-    function selectAnswer(e) {
+    function selectChoiceAnswer(e) {
         const selectedBtn = e.target;
         const selectedKey = selectedBtn.dataset.key;
         const correctKey = currentQuestions[currentQuestionIndex].correct;
 
-        // Disabilita i bottoni e colora
         Array.from(optionsContainer.children).forEach(button => {
             button.disabled = true;
             if (button.dataset.key === correctKey) {
@@ -584,12 +645,152 @@
         });
 
         if (selectedKey === correctKey) {
-            score += 2; // ORA VALE 2 PUNTI
+            score += 2; // +2 Punti corretta
         } else {
             selectedBtn.classList.add("wrong");
+            score -= 1; // -1 Punto errata (come da regolamento esame)
+        }
+        nextButton.style.display = "block";
+    }
+
+    // --- LOGICA TRASCINAMENTO (DRAG & DROP) ---
+    function renderDragDrop(q) {
+        // 1. Prepara il testo con i buchi
+        // Il testo nel JSON deve avere [[]] dove vanno i buchi
+        let parts = q.text.split("[[]]");
+        let htmlText = "";
+        
+        parts.forEach((part, index) => {
+            htmlText += part;
+            if (index < parts.length - 1) {
+                htmlText += `<div class="drop-zone" data-index="${index}" ondrop="drop(event)" ondragover="allowDrop(event)" onclick="removeWord(this)"></div>`;
+            }
+        });
+        questionText.innerHTML = htmlText;
+
+        // 2. Prepara le parole da trascinare
+        const dragContainer = document.createElement("div");
+        dragContainer.classList.add("draggable-container");
+        
+        let words = [...q.answers];
+        shuffleArray(words); // Mischia le risposte
+
+        words.forEach(word => {
+            let span = document.createElement("span");
+            span.classList.add("draggable");
+            span.draggable = true;
+            span.innerText = word;
+            span.id = "word-" + Math.random().toString(36).substr(2, 9);
+            span.ondragstart = drag;
+            // Aggiungo anche click per mobile
+            span.onclick = function() { selectWordForMobile(this); };
+            dragContainer.appendChild(span);
+        });
+
+        quizContainer.insertBefore(dragContainer, nextButton); // Inserisci prima del tasto next
+        checkButton.style.display = "block"; // Mostra tasto conferma
+    }
+
+    // Funzioni Drag & Drop Standard HTML5
+    let selectedWord = null; // Per mobile o click semplice
+
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+        selectedWord = ev.target;
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        var data = ev.dataTransfer.getData("text");
+        var draggedElement = document.getElementById(data);
+        
+        // Se la zona è vuota, accetta
+        if (ev.target.classList.contains("drop-zone") && ev.target.innerText === "") {
+            ev.target.innerText = draggedElement.innerText;
+            ev.target.classList.add("filled");
+            draggedElement.style.display = "none"; // Nascondi dalla banca parole
+        }
+    }
+
+    // Funzione alternativa per click (utile su mobile)
+    function selectWordForMobile(el) {
+        // Se ho già selezionato una parola, deseleziono
+        if (document.querySelectorAll('.draggable.dragging').length > 0) {
+            document.querySelectorAll('.draggable').forEach(d => d.classList.remove('dragging'));
+        }
+        el.classList.add("dragging");
+        
+        // Ora rendiamo le drop-zone cliccabili per ricevere questa parola
+        document.querySelectorAll('.drop-zone').forEach(zone => {
+            zone.onclick = function() {
+                let activeWord = document.querySelector('.draggable.dragging');
+                if (activeWord && this.innerText === "") {
+                    this.innerText = activeWord.innerText;
+                    this.classList.add("filled");
+                    activeWord.style.display = "none";
+                    activeWord.classList.remove("dragging");
+                } else if (this.innerText !== "") {
+                    // Se clicco su una zona piena, rimuovo la parola e la rimetto giù
+                    removeWord(this);
+                }
+            }
+        });
+    }
+
+    function removeWord(zone) {
+        if (zone.innerText === "") return;
+        
+        // Trova la parola originale nascosta e rimostrala
+        let text = zone.innerText;
+        let hiddenWords = document.querySelectorAll(".draggable");
+        for (let w of hiddenWords) {
+            if (w.style.display === "none" && w.innerText === text) {
+                w.style.display = "inline-block";
+                break; // Trova solo la prima occorrenza
+            }
+        }
+        
+        zone.innerText = "";
+        zone.classList.remove("filled");
+    }
+
+    function checkDragAnswer() {
+        let q = currentQuestions[currentQuestionIndex];
+        let zones = document.querySelectorAll(".drop-zone");
+        let allCorrect = true;
+
+        zones.forEach((zone, index) => {
+            let userAnswer = zone.innerText.trim();
+            let correctAnswer = q.answers[index]; // L'array answers è ordinato in base ai buchi
+            
+            if (userAnswer === correctAnswer) {
+                zone.style.borderBottom = "2px solid green";
+                zone.style.color = "green";
+            } else {
+                zone.style.borderBottom = "2px solid red";
+                zone.style.color = "red";
+                // Opzionale: mostra la risposta giusta
+                // zone.innerHTML += ` <small style='color:green'>(${correctAnswer})</small>`;
+                allCorrect = false;
+            }
+        });
+
+        if (allCorrect) {
+            score += 2;
+        } else {
+            // NESSUN punteggio negativo per il trascinamento (come da tua richiesta)
+            // score resta uguale
         }
 
+        checkButton.style.display = "none";
         nextButton.style.display = "block";
+        
+        // Disabilita modifiche
+        document.querySelectorAll(".drop-zone").forEach(z => z.onclick = null);
     }
 
     function nextQuestion() {
@@ -605,8 +806,8 @@
         quizContainer.style.display = "none";
         scoreContainer.style.display = "block";
         
-        const maxScore = currentQuestions.length * 2; // 16 * 2 = 32 punti totali
-        const passThreshold = 18; // Soglia per passare (sufficienza)
+        const maxScore = currentQuestions.length * 2; 
+        const passThreshold = 18; 
 
         let resultMessage = "";
         let colorStyle = "";
@@ -622,11 +823,9 @@
         finalScoreText.innerHTML = `
             <h2 style="${colorStyle}">${resultMessage}</h2>
             <p>Il tuo punteggio: <strong>${score}</strong> su ${maxScore}</p>
-            <p style="font-size: 0.9rem; color: #666;">(Soglia minima per passare: ${passThreshold})</p>
         `;
     }
 
-    // Avvia il quiz appena carica la pagina
     startQuiz();
 </script>
 
