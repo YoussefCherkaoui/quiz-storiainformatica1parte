@@ -4,7 +4,7 @@ Quiz per preparare la prima parte dell'esame di Storia dell'informatica all'Univ
 
 **Prova online:** https://youssefcherkaoui.github.io/quiz-storiainformatica1parte/
 
-![Quiz di Storia dell'informatica](https://raw.githubusercontent.com/YoussefCherkaoui/portfolio/main/img/quiz-storiainformatica1parte.jpg)
+![Quiz di Storia dell'informatica](https://raw.githubusercontent.com/YoussefCherkaoui/YoussefCherkaoui.github.io/main/img/quiz-storiainformatica1parte.jpg)
 
 ## Come funziona
 
